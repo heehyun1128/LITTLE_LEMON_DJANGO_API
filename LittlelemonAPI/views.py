@@ -10,6 +10,10 @@ from django.http import JsonResponse
 from .permissions import IsManager
 from django.shortcuts import get_object_or_404
 
+@api_view()
+def secret(request):
+    return Response({"message":"secret"})
+
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
 def menu_item_list_view(request):
@@ -75,27 +79,46 @@ def all_managers_view(request, pk=None):
     if request.method=='GET':
         if pk:
             user=get_object_or_404(User,pk=pk)
-            managers = Group.objects.get(name='Managers')
+            managers = Group.objects.get(name='manager')
             if user in managers.user_set.all():
                 serializer=AllManagerSerializer(user)
                 return JsonResponse(data=serializer.data)
             else:
                 return JsonResponse(status=404,data={'message':'User not found'})
-        queryset = User.objects.filter(groups__name='Managers') #__ to traverse relationships between models
+        queryset = User.objects.filter(groups__name='manager') #__ to traverse relationships between models
         serializer = AllManagerSerializer(queryset, many=True)
         return JsonResponse(data=serializer.data)
     elif request.method=='POST':
         username=request.data.get('username')
         if username:
             user=get_object_or_404(User,username=username)
-            managers = Group.objects.get(name='Managers')
+            managers = Group.objects.get(name='manager')
             managers.user_set.add(user)
             return JsonResponse(status=201, data={'message': 'User added to Managers group'})
         return JsonResponse(status=400, data={'message': 'Invalid data'})
     elif request.method == 'DELETE':
         if pk:
             user = get_object_or_404(User, pk=pk)
-            managers = Group.objects.get(name='Managers')
+            managers = Group.objects.get(name='manager')
             managers.user_set.remove(user)
             return JsonResponse(status=200, data={'message': 'User removed from Managers group'})
         return JsonResponse(status=400, data={'message': 'Invalid request'})
+
+@api_view(['POST','DELETE'])
+@permission_classes([IsAuthenticated,IsAdminUser])
+def manage_delivery_crew(request,pk=None):
+    if request.method=='POST':
+        username=request.data.get('username')
+        if username:
+            user=get_object_or_404(User,username=username)
+            crew=Group.objects.get(name='delivery_crew')
+            crew.user_set.add(user)
+            return JsonResponse(status=201, data={'message': 'User added to Delivery Crew group'})
+        
+        elif request.method=='DELETE':
+            user=get_object_or_404(User,pk=pk)
+            crew=Group.objects.get(name='delivery_crew')
+            crew.user_set.remove(user)
+            return JsonResponse(status=200, data={'message': 'User removed from the Delivery crew group'})
+
+    return JsonResponse(status=400, data={'message': 'Invalid request method'})
