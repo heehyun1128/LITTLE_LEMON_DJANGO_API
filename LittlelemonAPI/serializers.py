@@ -22,6 +22,18 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = ['id', 'user', 'menuitem', 'quantity', 'unit_price', 'price']
 
+class CartAddSerializer(serializers.ModelSerializer):
+    class Meta():
+        model = Cart
+        fields = ['menuitem','quantity']
+        extra_kwargs = {
+            'quantity': {'min_value': 1},
+        }
+class CartRemoveSerializer(serializers.ModelSerializer):
+    class Meta():
+        model = Cart
+        fields = ['menuitem']
+        
 class OrderItemSerializer(serializers.ModelSerializer):
     menuitem = MenuItemSerializer()
 

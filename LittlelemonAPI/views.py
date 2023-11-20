@@ -5,10 +5,12 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Category,MenuItem, Cart, Order, OrderItem
-from .serializers import MenuItemSerializer, CategorySerializer,AllManagerSerializer
-from django.http import JsonResponse
+from .serializers import MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer
+from django.http import JsonResponse, HttpResponseBadRequest
 from .permissions import IsManager
 from django.shortcuts import get_object_or_404
+import math
+from datetime import date
 
 @api_view()
 def secret(request):
@@ -73,7 +75,7 @@ def menu_item_detail_view(request, pk):
         else:
             return JsonResponse(status=403,data={'message':'Access Denied'})
             
-@api_view(['GET','POST','DELETE'])
+@api_view(['GET','POST'])
 @permission_classes([IsAuthenticated, IsManager | IsAdminUser])
 def all_managers_view(request, pk=None):
     if request.method=='GET':
@@ -96,17 +98,19 @@ def all_managers_view(request, pk=None):
             managers.user_set.add(user)
             return JsonResponse(status=201, data={'message': 'User added to Managers group'})
         return JsonResponse(status=400, data={'message': 'Invalid data'})
-    elif request.method == 'DELETE':
-        if pk:
-            user = get_object_or_404(User, pk=pk)
-            managers = Group.objects.get(name='manager')
-            managers.user_set.remove(user)
-            return JsonResponse(status=200, data={'message': 'User removed from Managers group'})
-        return JsonResponse(status=400, data={'message': 'Invalid request'})
 
-@api_view(['POST','DELETE'])
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+def managers_remove_view(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    managers = Group.objects.get(name='Managers')
+    managers.user_set.remove(user)
+    return JsonResponse(status=200, data={'message': 'User removed from Managers group'})
+
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated,IsAdminUser])
-def manage_delivery_crew(request,pk=None):
+def manage_delivery_crew_view(request,pk=None):
     if request.method=='POST':
         username=request.data.get('username')
         if username:
@@ -115,10 +119,72 @@ def manage_delivery_crew(request,pk=None):
             crew.user_set.add(user)
             return JsonResponse(status=201, data={'message': 'User added to Delivery Crew group'})
         
-        elif request.method=='DELETE':
-            user=get_object_or_404(User,pk=pk)
-            crew=Group.objects.get(name='delivery_crew')
-            crew.user_set.remove(user)
-            return JsonResponse(status=200, data={'message': 'User removed from the Delivery crew group'})
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+def delivery_crew_remove_view(request, pk):
+    user=get_object_or_404(User,pk=pk)
+    crew=Group.objects.get(name='delivery_crew')
+    crew.user_set.remove(user)
+    return JsonResponse(status=200, data={'message': 'User removed from the Delivery crew group'})
 
-    return JsonResponse(status=400, data={'message': 'Invalid request method'})
+
+@api_view(['GET', 'POST', 'DELETE'])
+def cart_view(request, *args, **kwargs):
+    if request.method=='GET':
+        cart=Cart.objects.filter(user=request.user)
+        serializer=CartSerializer(cart,many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serialized_item=CartAddSerializer(data=request.data)
+        serialized_item.is_valid(raise_exception=True)
+        id=request.data['menuitem']
+        quantity=request.data['quantity']
+        item = get_object_or_404(MenuItem, id=id)
+        price=item.price*int(quantity)
+        
+        try:
+            Cart.objects.create(user=request.user,quantity=quantity,unit_price=item.price, price=price, menuitem_id=id)
+        except:
+            return JsonResponse(status=409, data={'message':'Item already in cart'})
+        return JsonResponse(status=201, data={'message':'Item added to cart!'})
+    elif request.method == 'DELETE':
+        if request.data['menuitem']:
+            serialized_item=CartRemoveSerializer(data=request.data)
+            serialized_item.is_valid(raise_exception=True)
+            menuitem=request.data['menuitem']
+            cart = get_object_or_404(Cart, user=request.user, menuitem=menuitem)
+            cart.delete()
+            return JsonResponse(status=200, data={'message':'Item removed from cart'})
+        else:
+            Cart.objects.filter(user=request.user).delete()
+            return JsonResponse(status=201, data={'message':'All items removed from cart'})
+        
+    
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+def order_view(request):
+    if request.method == 'GET':
+        if request.user.group.filter(name='manager').exist() or request.user.is_superuser:
+            query=Order.objects.all()
+        elif request.user.groups.filter(name='delivery_crew').exists():
+            query = Order.objects.filter(delivery_crew=request.user)
+        else:
+            query = Order.objects.filter(user=request.user)
+        serializer = OrderSerializer(query, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    
+    elif request.method == 'POST':
+        cart = Cart.objects.filter(user=request.user)
+        if not cart.exists():
+            return HttpResponseBadRequest()
+        
+        total = math.fsum([float(item.price) for item in cart])
+        order = Order.objects.create(user=request.user, status=False, total=total, date=date.today())
+        
+        for item in cart:
+            menuitem = get_object_or_404(MenuItem, id=item.menuitem_id)
+            order_item = OrderItem.objects.create(order=order, menuitem=menuitem, quantity=item.quantity)
+            order_item.save()
+        
+        cart.delete()
+        return JsonResponse(status=201, data={'message': f'Your order has been placed! Your order number is {order.id}'})
