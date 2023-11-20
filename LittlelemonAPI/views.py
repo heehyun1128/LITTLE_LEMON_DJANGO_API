@@ -84,3 +84,18 @@ def all_managers_view(request, pk=None):
         queryset = User.objects.filter(groups__name='Managers') #__ to traverse relationships between models
         serializer = AllManagerSerializer(queryset, many=True)
         return JsonResponse(data=serializer.data)
+    elif request.method=='POST':
+        username=request.data.get('username')
+        if username:
+            user=get_object_or_404(User,username=username)
+            managers = Group.objects.get(name='Managers')
+            managers.user_set.add(user)
+            return JsonResponse(status=201, data={'message': 'User added to Managers group'})
+        return JsonResponse(status=400, data={'message': 'Invalid data'})
+    elif request.method == 'DELETE':
+        if pk:
+            user = get_object_or_404(User, pk=pk)
+            managers = Group.objects.get(name='Managers')
+            managers.user_set.remove(user)
+            return JsonResponse(status=200, data={'message': 'User removed from Managers group'})
+        return JsonResponse(status=400, data={'message': 'Invalid request'})
