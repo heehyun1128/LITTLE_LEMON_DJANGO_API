@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Category,MenuItem, Cart, Order, OrderItem
-from .serializers import MenuItemSerializer
+from .serializers import MenuItemSerializer, CategorySerializer
+from django.http import JsonResponse
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -41,3 +42,28 @@ def category_view(request):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET','PATCH','DELETE'])
+@permission_classes([IsAuthenticated])
+def menu_item_detail_view(request, pk):
+    try:
+        menu_item=MenuItem.objects.get(pk=pk)
+    except MenuItem.DoesNotExist:
+        return JsonResponse(status=404,data={'message':'Menu Item Not Found!'})
+    if request.method=='GET':
+        serializer=MenuItemSerializer(menu_item)
+        return JsonResponse(status=200,data=serializer.data)
+    elif request.method=='PATCH':
+        if request.user.is_staff or (request.user.is_authenticated and request.user.is_manager):
+            menu_item.featured=not menu_item.featured
+            menu_item.save()
+            return JsonResponse(status=200,data={'message':'Featured status changed'})
+        else:
+            return JsonResponse(status=403,data={'message':'Access Denied'})
+    elif request.method=='DELETE':
+        if request.user.is_staff:
+            menu_item.delete()
+            return JsonResponse(status=200,data={'message':'Menu Item Deleted Successfully.'})
+        else:
+            return JsonResponse(status=403,data={'message':'Access Denied'})
+            
+    
