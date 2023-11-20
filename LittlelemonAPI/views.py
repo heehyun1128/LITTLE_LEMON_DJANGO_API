@@ -1,11 +1,14 @@
 from django.shortcuts import render
+from django.contrib.auth.models import User, Group
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Category,MenuItem, Cart, Order, OrderItem
-from .serializers import MenuItemSerializer, CategorySerializer
+from .serializers import MenuItemSerializer, CategorySerializer,AllManagerSerializer
 from django.http import JsonResponse
+from .permissions import IsManager
+from django.shortcuts import get_object_or_404
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -66,4 +69,18 @@ def menu_item_detail_view(request, pk):
         else:
             return JsonResponse(status=403,data={'message':'Access Denied'})
             
-    
+@api_view(['GET','POST','DELETE'])
+@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+def all_managers_view(request, pk=None):
+    if request.method=='GET':
+        if pk:
+            user=get_object_or_404(User,pk=pk)
+            managers = Group.objects.get(name='Managers')
+            if user in managers.user_set.all():
+                serializer=AllManagerSerializer(user)
+                return JsonResponse(data=serializer.data)
+            else:
+                return JsonResponse(status=404,data={'message':'User not found'})
+        queryset = User.objects.filter(groups__name='Managers') #__ to traverse relationships between models
+        serializer = AllManagerSerializer(queryset, many=True)
+        return JsonResponse(data=serializer.data)

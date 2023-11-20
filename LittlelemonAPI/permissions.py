@@ -4,7 +4,7 @@ class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.is_staff #request.user.is_staff to distinguish regular users from staff/admin users
 
-class isManager(permissions.BasePermission):
+class IsManager(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.groups.filter(name='manager').exists()
 
