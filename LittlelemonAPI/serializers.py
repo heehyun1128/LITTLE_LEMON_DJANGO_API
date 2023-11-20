@@ -52,3 +52,13 @@ class AllManagerSerializer(serializers.ModelSerializer):
     class Meta():
         model = User
         fields = ['id','username','email']
+        
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = '__all__'
+
+class OrderPutSerializer(serializers.ModelSerializer):
+    class Meta():
+        model = Order
+        fields = ['delivery_crew']

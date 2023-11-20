@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Category,MenuItem, Cart, Order, OrderItem
-from .serializers import MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer
+from .serializers import MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer,OrderItemSerializer,OrderPutSerializer
 from django.http import JsonResponse, HttpResponseBadRequest
 from .permissions import IsManager
 from django.shortcuts import get_object_or_404
@@ -188,3 +188,34 @@ def order_view(request):
         
         cart.delete()
         return JsonResponse(status=201, data={'message': f'Your order has been placed! Your order number is {order.id}'})
+    
+
+@api_view(['GET', 'PATCH', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+def single_order_view(request, pk=None):
+    if request.method == 'GET':
+        query = OrderItem.objects.filter(order_id=pk)
+        serializer = OrderItemSerializer(query, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == 'PATCH':
+        order = Order.objects.get(pk=pk)
+        order.status = not order.status
+        order.save()
+        return JsonResponse(status=200, data={'message': f'Status of order #{order.id} changed to {order.status}'})
+
+    elif request.method == 'PUT':
+        serialized_item = OrderPutSerializer(data=request.data)
+        serialized_item.is_valid(raise_exception=True)
+        crew_pk = request.data['delivery_crew']
+        order = get_object_or_404(Order, pk=pk)
+        crew = get_object_or_404(User, pk=crew_pk)
+        order.delivery_crew = crew
+        order.save()
+        return JsonResponse(status=201, data={'message': f'{crew.username} was assigned to order #{order.id}'})
+
+    elif request.method == 'DELETE':
+        order = Order.objects.get(pk=pk)
+        order_number = order.id
+        order.delete()
+        return JsonResponse(status=200, data={'message': f'Order #{order_number} was deleted'})
