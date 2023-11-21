@@ -1,0 +1,19 @@
+Superuser:
+    username:superuser
+    password:Superuserpass123
+
+Manager:
+    username:manager
+    password:Managerpass123
+
+Delivery Crew:
+    username:delivery
+    password:Deliverypass123
+
+User1:
+    username:user1
+    password:User1pass123
+
+User2:
+    username:user2
+    password:User2pass123
