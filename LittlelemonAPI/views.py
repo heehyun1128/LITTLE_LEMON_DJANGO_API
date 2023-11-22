@@ -147,6 +147,7 @@ def cart_view(request, *args, **kwargs):
         except:
             return JsonResponse(status=409, data={'message':'Item already in cart'})
         return JsonResponse(status=201, data={'message':'Item added to cart!'})
+    
     elif request.method == 'DELETE':
         if request.data['menuitem']:
             serialized_item=CartRemoveSerializer(data=request.data)
