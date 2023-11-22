@@ -32,6 +32,14 @@ def menu_item_list_view(request):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+# sort menu items
+@api_view(['GET'])
+def sort_menu_by_price(request):
+    menu_items=MenuItem.objects.order_by('price')
+    serializer=MenuItemSerializer(menu_items,many=True)
+    return Response(serializer.data)
+    
     
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
