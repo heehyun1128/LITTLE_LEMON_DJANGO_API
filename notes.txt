@@ -1,24 +1,29 @@
 Superuser:
     username:superuser
     password:Superpass123
-    "token": "9f4253095db21ed7c635d719cfaffbc608d49527"
+    token:5f90b86fda4e4a18b94945fe0dd110fe24d5e6e9
 
-Manager:
-    username:manager
-    password:Managerpass123
-    "token": "d82da714ba32599c177c46cbef6d83fdc82f671e"
+Manager1:
+    username:manager1
+    password:Manager1pass123
+    token:14ecd974b552de6e6ab9975744a5c406686327be
+
+Manager2:
+    username:manager2
+    password:Manager2pass123
+    token:39d922cb6b808b6dfc5d04598fe392e6706e8eb1
 
 Delivery Crew:
     username:delivery
     password:Deliverypass123
-    "token": "f3681beff43e88ffaa9ab3e4f96d9e606c944835"
+    token:f9411e1e3f004dc96120901f9ab4f0ea1ecb2ca0
 
 User1:
     username:user1
     password:User1pass123
-    "token": "0074d6ee948d31231bd6bdc10ba55eea7d24c17d"
+    token:f357be128d3325e9ae2fbcaf816dea24f0d7da4a
 
 User2:
     username:user2
     password:User2pass123
-    "token": "a39ab69d85430677f8f66113bfa09ff5a6e07308"
+    token:62d3ed6d94e9e0b6ad8781dda720a109f3c14815

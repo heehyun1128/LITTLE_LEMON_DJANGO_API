@@ -89,7 +89,7 @@ def all_managers_view(request, pk=None):
                 return JsonResponse(status=404,data={'message':'User not found'})
         queryset = User.objects.filter(groups__name='manager') #__ to traverse relationships between models
         serializer = AllManagerSerializer(queryset, many=True)
-        return JsonResponse(data=serializer.data)
+        return JsonResponse(data=serializer.data,safe=False)
     elif request.method=='POST':
         username=request.data.get('username')
         if username:
