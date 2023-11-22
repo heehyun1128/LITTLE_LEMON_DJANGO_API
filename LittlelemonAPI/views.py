@@ -12,9 +12,9 @@ from django.shortcuts import get_object_or_404
 import math
 from datetime import date
 
-@api_view()
-def secret(request):
-    return Response({"message":"secret"})
+# @api_view()
+# def secret(request):
+#     return Response({"message":"secret"})
 
 @api_view(['GET','POST'])
 @permission_classes([IsAuthenticated])
@@ -165,7 +165,7 @@ def cart_view(request, *args, **kwargs):
 @permission_classes([IsAuthenticated, IsManager | IsAdminUser])
 def order_view(request):
     if request.method == 'GET':
-        if request.user.group.filter(name='manager').exist() or request.user.is_superuser:
+        if request.user.groups.filter(name='manager').exists() or request.user.is_superuser:
             query=Order.objects.all()
         elif request.user.groups.filter(name='delivery_crew').exists():
             query = Order.objects.filter(delivery_crew=request.user)

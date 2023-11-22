@@ -11,7 +11,7 @@ urlpatterns = [
     path('cart/menu-items', cart_view, name='cart_view'),
     path('orders', order_view, name='order_view'),
     path('orders/<int:pk>', single_order_view, name='single_order_view'),
-    path('secret',secret),
+    # path('secret',secret),
     path('api-token-auth/',obtain_auth_token)
     
 ]
