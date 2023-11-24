@@ -127,8 +127,11 @@ GET http://localhost:8000/api/menu-items/category/1/
 GET http://localhost:8000/api/menu-items/paginated/
 
 17.	Customers can sort menu items by price
+GET http://localhost:8000/api/menu-items/sort=price
 
 18.	Customers can add menu items to the cart
+LOG IN AS user1
+GET http://localhost:8000/api/cart/menu-items
 
 19.	Customers can access previously added items in the cart
 

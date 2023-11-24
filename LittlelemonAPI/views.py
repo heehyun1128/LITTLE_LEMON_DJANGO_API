@@ -88,6 +88,7 @@ def menu_items_pagination(request):
 
 # sort menu items
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def sort_menu_by_price(request):
     menu_items=MenuItem.objects.order_by('price')
     serializer=MenuItemSerializer(menu_items,many=True)
@@ -213,10 +214,11 @@ def delivery_crew_remove_view(request, pk):
 
 
 @api_view(['GET', 'POST', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def cart_view(request, *args, **kwargs):
+    queryset=Cart.objects.filter(user=request.user)
     if request.method=='GET':
-        cart=Cart.objects.filter(user=request.user)
-        serializer=CartSerializer(cart,many=True)
+        serializer=CartSerializer(queryset,many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         serialized_item=CartAddSerializer(data=request.data)
@@ -229,8 +231,8 @@ def cart_view(request, *args, **kwargs):
         try:
             Cart.objects.create(user=request.user,quantity=quantity,unit_price=item.price, price=price, menuitem_id=id)
         except:
-            return JsonResponse(status=409, data={'message':'Item already in cart'})
-        return JsonResponse(status=201, data={'message':'Item added to cart!'})
+            return Response({'message':'Item already in cart'},status=409)
+        return Response( {'message':'Item added to cart!'},status=201)
     
     elif request.method == 'DELETE':
         if request.data['menuitem']:
