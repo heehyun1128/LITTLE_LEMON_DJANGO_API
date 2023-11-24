@@ -1,0 +1,94 @@
+Superuser:
+    username:superuser
+    password:Superpass123
+    token:5f90b86fda4e4a18b94945fe0dd110fe24d5e6e9
+
+Manager1:
+    username:manager1
+    password:Manager1pass123
+    token:14ecd974b552de6e6ab9975744a5c406686327be
+
+Manager2:
+    username:manager2
+    password:Manager2pass123
+    token:39d922cb6b808b6dfc5d04598fe392e6706e8eb1
+
+Delivery Crew:
+    username:delivery
+    password:Deliverypass123
+    token:f9411e1e3f004dc96120901f9ab4f0ea1ecb2ca0
+
+User1:
+    username:user1
+    password:User1pass123
+    token:f357be128d3325e9ae2fbcaf816dea24f0d7da4a
+
+User2:
+    username:user2
+    password:User2pass123
+    token:62d3ed6d94e9e0b6ad8781dda720a109f3c14815
+
+
+API ROUTES
+1.	The admin can assign users to the manager group
+    POST http://localhost:8000/api/groups/manager/users
+     {
+        "username": "user2",
+        "email": "user2@user2.com"
+    }
+2.	You can access the manager group with an admin token
+    GET http://localhost:8000/api/groups/manager/users
+
+3.	The admin can add menu items 
+    POST http://localhost:8000/api/menu-items/
+    Sample data:
+        {
+            "title": "MenuItem5",
+            "price": 50.00,
+            "featured": false,
+            "category": {
+                "id": 1,
+                "slug": "Slug1",
+                "title": "Category1"
+            }
+        }
+4.	The admin can add categories
+    POST http://localhost:8000/api/category
+        {
+            "slug": "Slug2",
+            "title": "Category4"
+        }
+5.	Managers can log in 
+
+6.	Managers can update the item of the day
+
+7.	Managers can assign users to the delivery crew
+
+8.	Managers can assign orders to the delivery crew
+
+9.	The delivery crew can access orders assigned to them
+
+10.	The delivery crew can update an order as delivered
+
+11.	Customers can register
+
+12.	Customers can log in using their username and password and get access tokens
+
+13.	Customers can browse all categories 
+
+14.	Customers can browse all the menu items at once
+
+15.	Customers can browse menu items by category
+
+16.	Customers can paginate menu items
+
+17.	Customers can sort menu items by price
+
+18.	Customers can add menu items to the cart
+
+19.	Customers can access previously added items in the cart
+
+20.	Customers can place orders
+
+21.	Customers can browse their own orders
+

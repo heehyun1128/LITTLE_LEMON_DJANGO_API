@@ -5,13 +5,19 @@ from .models import Category,MenuItem, Cart, Order, OrderItem
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model=Category
-        fields=['id','slug','title']
+        fields = '__all__'
 
 class MenuItemSerializer(serializers.ModelSerializer):
     category=CategorySerializer()
     class Meta:
         model=MenuItem
-        fields=['id', 'title', 'price', 'featured', 'category']
+        fields = '__all__'
+        
+    def create(self,validated_data):
+        category_data=validated_data.pop('category')
+        category_instance=Category.objects.create(**category_data)
+        menu_item=MenuItem.objects.create(category=category_instance,**validated_data)
+        return menu_item
 
 
 
