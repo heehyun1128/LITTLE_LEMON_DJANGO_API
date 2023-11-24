@@ -85,10 +85,17 @@ API ROUTES
         {"username":"user1"}
 
 8.	Managers can assign orders to the delivery crew
+    PUT http://localhost:8000/api/orders/2
+        {
+            "delivery_crew": 4
+        }
 
 9.	The delivery crew can access orders assigned to them
+    LOG IN as delivery(username): http://localhost:8000/api/login
+    GET http://localhost:8000/api/orders
 
 10.	The delivery crew can update an order as delivered
+    PATCH http://localhost:8000/api/orders/1
 
 11.	Customers can register
 

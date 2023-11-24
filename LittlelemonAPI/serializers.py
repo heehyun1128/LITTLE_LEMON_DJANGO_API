@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Category,MenuItem, Cart, Order, OrderItem
+from datetime import datetime
+
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -55,14 +57,23 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'menuitem', 'quantity', 'unit_price', 'price']
+        fields = '__all__'
 
 class OrderSerializer(serializers.ModelSerializer):
     delivery_crew=serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     order_items=OrderItemSerializer(many=True,read_only=True)
     class Meta:
         model = Order
-        fields = ['id', 'user', 'delivery_crew', 'status', 'total', 'date', 'order_items']
+        fields ='__all__'
+    
+    def validate_date(self, value):
+        # Ensure that the date is in the correct format (YYYY-MM-DD)
+        try:
+            date_obj = datetime.strptime(value, '%Y-%m-%d').date()
+        except ValueError:
+            raise serializers.ValidationError('Invalid date format. Use "YYYY-MM-DD".')
+
+        return date_obj
         
 class AllManagerSerializer(serializers.ModelSerializer):
     class Meta():

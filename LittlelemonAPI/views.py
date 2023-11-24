@@ -194,7 +194,7 @@ def cart_view(request, *args, **kwargs):
         
     
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+@permission_classes([IsAuthenticated])
 def order_view(request):
     if request.method == 'GET':
         if request.user.groups.filter(name='manager').exists() or request.user.is_superuser:
@@ -209,7 +209,7 @@ def order_view(request):
     elif request.method == 'POST':
         cart = Cart.objects.filter(user=request.user)
         if not cart.exists():
-            return HttpResponseBadRequest()
+            return Response({'message': 'Bad Request'}, status=400)
         
         total = math.fsum([float(item.price) for item in cart])
         order = Order.objects.create(user=request.user, status=False, total=total, date=date.today())
@@ -220,35 +220,45 @@ def order_view(request):
             order_item.save()
         
         cart.delete()
-        return JsonResponse(status=201, data={'message': f'Your order has been placed! Your order number is {order.id}'})
+        return Response({'message': f'Your order has been placed! Your order number is {order.id}'},status=201)
+    return Response({'message': 'Invalid request method'}, status=400)
     
 
 @api_view(['GET', 'PATCH', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated, IsManager | IsAdminUser])
+@permission_classes([IsAuthenticated])
 def single_order_view(request, pk=None):
+    order = get_object_or_404(Order, pk=pk)
     if request.method == 'GET':
-        query = OrderItem.objects.filter(order_id=pk)
-        serializer = OrderItemSerializer(query, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        order_serializer = OrderSerializer(order)
+        query = OrderItem.objects.filter(order=order)
+        order_items_serializer = OrderItemSerializer(query, many=True)
+        response_data = {
+            'order': {
+                **order_serializer.data,
+                'order_items': order_items_serializer.data}
+        }
+
+        return Response(response_data)
 
     elif request.method == 'PATCH':
         order = Order.objects.get(pk=pk)
         order.status = not order.status
         order.save()
-        return JsonResponse(status=200, data={'message': f'Status of order #{order.id} changed to {order.status}'})
+        return Response(data={'message': f'Status of order #{order.id} changed to {order.status}'},status=200)
 
     elif request.method == 'PUT':
         serialized_item = OrderPutSerializer(data=request.data)
         serialized_item.is_valid(raise_exception=True)
         crew_pk = request.data['delivery_crew']
-        order = get_object_or_404(Order, pk=pk)
+        
         crew = get_object_or_404(User, pk=crew_pk)
         order.delivery_crew = crew
         order.save()
-        return JsonResponse(status=201, data={'message': f'{crew.username} was assigned to order #{order.id}'})
+        return Response({'message': f'{crew.username} was assigned to order #{order.id}'},status=201)
 
     elif request.method == 'DELETE':
         order = Order.objects.get(pk=pk)
         order_number = order.id
         order.delete()
-        return JsonResponse(status=200, data={'message': f'Order #{order_number} was deleted'})
+        return Response( data={'message': f'Order #{order_number} was deleted'},status=200)
+    return Response({'message': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
