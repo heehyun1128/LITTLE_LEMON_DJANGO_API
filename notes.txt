@@ -59,10 +59,30 @@ API ROUTES
             "title": "Category4"
         }
 5.	Managers can log in 
-
+    POST http://localhost:8000/api/login/
+    {
+        "username":"user1",
+        "password":"User1pass123"
+    }
+    
 6.	Managers can update the item of the day
+    UPDATE http://localhost:8000/api/menu-items/1
+        {
+            "id": 1,
+            "category": {
+                "id": 1,
+                "slug": "Slug2",
+                "title": "Category2"
+            },
+            "title": "MenuItem1",
+            "price": "30.00",
+            "featured": false
+        }
+    DELETE http://localhost:8000/api/menu-items/3
 
 7.	Managers can assign users to the delivery crew
+    POST http://localhost:8000/api/groups/delivery-crew/users
+        {"username":"user1"}
 
 8.	Managers can assign orders to the delivery crew
 

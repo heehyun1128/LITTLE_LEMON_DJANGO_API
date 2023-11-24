@@ -22,11 +22,8 @@ def login_view(request):
     user=authenticate(request,username=username,password=password)
     
     if user is not None:
-        if user.groups.filter(name='Managers').exists():
-            login(request,user)
-            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'User is not a manager'}, status=status.HTTP_403_FORBIDDEN)
+        login(request,user)
+        return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -74,7 +71,7 @@ def category_view(request):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET','PATCH','DELETE'])
+@api_view(['GET','PUT','DELETE'])
 @permission_classes([IsAuthenticated])
 def menu_item_detail_view(request, pk):
     try:
@@ -84,13 +81,20 @@ def menu_item_detail_view(request, pk):
     if request.method=='GET':
         serializer=MenuItemSerializer(menu_item)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-    elif request.method=='PATCH':
-        if request.user.is_staff or (request.user.is_authenticated and request.user.is_manager):
-            menu_item.featured=not menu_item.featured
-            menu_item.save()
-            return Response(data={'message': 'Featured status changed'}, status=status.HTTP_200_OK)
+    elif request.method=='PUT':
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return Response(data={'message': 'Access Denied'}, status=403)
+        try:
+            menu_item=MenuItem.objects.first()
+        except menu_item.DoesNotExist:
+            return Response(data={'message': 'Item of the day not found'}, status=404)
+        serializer=MenuItemSerializer(menu_item,data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data={'message': 'Item of the day updated successfully'}, status=200)
         else:
-            return Response(data={'message': 'Access Denied'}, status=status.HTTP_403_FORBIDDEN)
+            return Response(data={'message': 'Invalid data'}, status=400)
+           
 
     elif request.method=='DELETE':
         if request.user.is_staff:
@@ -132,16 +136,20 @@ def managers_remove_view(request, pk):
     return JsonResponse(status=200, data={'message': 'User removed from Managers group'})
 
 
-@api_view(['POST'])
+@api_view(['GET','POST'])
 @permission_classes([IsAuthenticated,IsAdminUser])
 def manage_delivery_crew_view(request,pk=None):
-    if request.method=='POST':
+    if request.method=='GET':
+        queryset=User.objects.filter(groups__name='delivery_crew')
+        return Response({'crew_members': [user.username for user in queryset]})
+    elif request.method=='POST':
         username=request.data.get('username')
         if username:
             user=get_object_or_404(User,username=username)
             crew=Group.objects.get(name='delivery_crew')
             crew.user_set.add(user)
-            return JsonResponse(status=201, data={'message': 'User added to Delivery Crew group'})
+            return Response({'message': 'User added to Delivery Crew group'}, status=201)
+    return Response({'message': 'Invalid request method'}, status=400)
         
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated, IsManager | IsAdminUser])

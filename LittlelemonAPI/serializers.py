@@ -18,6 +18,16 @@ class MenuItemSerializer(serializers.ModelSerializer):
         category_instance=Category.objects.create(**category_data)
         menu_item=MenuItem.objects.create(category=category_instance,**validated_data)
         return menu_item
+    
+    def update(self,instance,validated_data):
+        category_data=validated_data.pop('category',None)
+        if category_data:
+            category_instance=instance.category
+            category_serializer=CategorySerializer(category_instance,data=category_data)
+            if category_serializer.is_valid():
+                category_serializer.save()
+        instance = super().update(instance, validated_data)
+        return instance
 
 
 

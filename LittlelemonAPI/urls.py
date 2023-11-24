@@ -1,8 +1,9 @@
 from django.urls import path,include
-from .views import menu_item_list_view,menu_item_detail_view,category_view, all_managers_view,manage_delivery_crew_view,delivery_crew_remove_view,cart_view,order_view,single_order_view,sort_menu_by_price
+from .views import login_view,menu_item_list_view,menu_item_detail_view,category_view, all_managers_view,manage_delivery_crew_view,delivery_crew_remove_view,cart_view,order_view,single_order_view,sort_menu_by_price
 from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
+    path('login/', login_view, name='login_view'),
     path('menu-items/', menu_item_list_view, name='menu-item-list'),
     path('menu-items/sort=price',sort_menu_by_price , name='menu-item-sort-by-price'),
     path('menu-items/<int:pk>', menu_item_detail_view, name='menu-items'),
