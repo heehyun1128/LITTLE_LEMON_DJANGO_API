@@ -5,6 +5,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
 from .models import Category,MenuItem, Cart, Order, OrderItem
 from .serializers import CustomerRegisterSerializer, MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer,OrderItemSerializer,OrderPutSerializer
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -12,7 +15,6 @@ from .permissions import IsManager
 from django.shortcuts import get_object_or_404
 import math
 from datetime import date
-from rest_framework.permissions import AllowAny
 
 @api_view(['POST'])
 @permission_classes([AllowAny]) 
@@ -29,16 +31,21 @@ def customer_register_view(request):
 
 
 @api_view(['POST'])
-@permission_classes([])
+@permission_classes([AllowAny])
 def login_view(request):
+    
     username=request.data.get('username')
     password=request.data.get('password')
     
+    if not username or not password:
+        return Response({'message': 'Both username and password are required.'}, status=400)
+
     user=authenticate(request,username=username,password=password)
     
     if user is not None:
         login(request,user)
-        return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key})
     else:
         return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     

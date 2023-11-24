@@ -109,10 +109,16 @@ API ROUTES
     }
 
 12.	Customers can log in using their username and password and get access tokens
-
+    POST http://localhost:8000/api/login/ TO LOG IN
+    {
+        "username":"newuser",
+        "password":"Newuserpass123"
+    }
 13.	Customers can browse all categories 
+GET http://localhost:8000/api/category
 
 14.	Customers can browse all the menu items at once
+GET http://localhost:8000/api/menu-items/
 
 15.	Customers can browse menu items by category
 
