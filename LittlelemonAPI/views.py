@@ -22,7 +22,13 @@ def login_view(request):
     user=authenticate(request,username=username,password=password)
     
     if user is not None:
-        if user.groups.filter(name='Managers').exists()
+        if user.groups.filter(name='Managers').exists():
+            login(request,user)
+            return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'User is not a manager'}, status=status.HTTP_403_FORBIDDEN)
+    else:
+        return Response({'message': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
     
 
 @api_view(['GET','POST'])
