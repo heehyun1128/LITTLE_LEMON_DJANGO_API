@@ -73,6 +73,17 @@ def sort_menu_by_price(request):
     menu_items=MenuItem.objects.order_by('price')
     serializer=MenuItemSerializer(menu_items,many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def menu_items_by_category_view(request,category_id):
+    try:
+        category=Category.objects.get(id=category_id)
+        menu_items=category.menu_items.all()
+        serializer = MenuItemSerializer(menu_items, many=True)
+        return Response(serializer.data)
+    except Category.DoesNotExist:
+        return Response({'message': 'Category not found'}, status=404)
     
     
 @api_view(['GET','POST'])
