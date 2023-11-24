@@ -204,7 +204,7 @@ def order_view(request):
         else:
             query = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(query, many=True)
-        return JsonResponse(serializer.data, safe=False)
+        return Response(serializer.data)
     
     elif request.method == 'POST':
         cart = Cart.objects.filter(user=request.user)
