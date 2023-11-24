@@ -124,6 +124,7 @@ GET http://localhost:8000/api/menu-items/
 GET http://localhost:8000/api/menu-items/category/1/
 
 16.	Customers can paginate menu items
+GET http://localhost:8000/api/menu-items/paginated/
 
 17.	Customers can sort menu items by price
 

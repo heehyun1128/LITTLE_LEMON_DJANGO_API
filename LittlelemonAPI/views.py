@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
+from rest_framework.pagination import PageNumberPagination
 from .models import Category,MenuItem, Cart, Order, OrderItem
 from .serializers import CustomerRegisterSerializer, MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer,OrderItemSerializer,OrderPutSerializer
 from django.http import JsonResponse, HttpResponseBadRequest
@@ -16,6 +17,12 @@ from django.shortcuts import get_object_or_404
 import math
 from datetime import date
 
+
+class MenuItemPagination(PageNumberPagination):
+    page_size=2
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+    
 @api_view(['POST'])
 @permission_classes([AllowAny]) 
 def customer_register_view(request):
@@ -66,6 +73,18 @@ def menu_item_list_view(request):
             serializer.save()
             return Response(serializer.data,status=status.HTTP_201_CREATED)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+#paginate menu items
+@api_view()
+@permission_classes([IsAuthenticated])
+def menu_items_pagination(request):
+    pagination = MenuItemPagination()
+    
+    if request.method=='GET':
+        queryset=MenuItem.objects.all()
+        paginated_view=pagination.paginate_queryset(queryset,request)
+        serializer=MenuItemSerializer(paginated_view,many=True)
+        return pagination.get_paginated_response(serializer.data)
 
 # sort menu items
 @api_view(['GET'])
@@ -295,3 +314,4 @@ def single_order_view(request, pk=None):
         order.delete()
         return Response( data={'message': f'Order #{order_number} was deleted'},status=200)
     return Response({'message': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
+
