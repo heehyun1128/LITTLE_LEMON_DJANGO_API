@@ -16,7 +16,8 @@ from .permissions import IsManager
 from django.shortcuts import get_object_or_404
 import math
 from datetime import date
-
+from decimal import Decimal
+from django.db import transaction
 
 class MenuItemPagination(PageNumberPagination):
     page_size=2
@@ -246,6 +247,7 @@ def cart_view(request, *args, **kwargs):
             Cart.objects.filter(user=request.user).delete()
             return JsonResponse(status=201, data={'message':'All items removed from cart'})
         
+
     
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -261,20 +263,44 @@ def order_view(request):
         return Response(serializer.data)
     
     elif request.method == 'POST':
-        cart = Cart.objects.filter(user=request.user)
-        if not cart.exists():
-            return Response({'message': 'Bad Request'}, status=400)
-        
-        total = math.fsum([float(item.price) for item in cart])
-        order = Order.objects.create(user=request.user, status=False, total=total, date=date.today())
-        
-        for item in cart:
-            menuitem = get_object_or_404(MenuItem, id=item.menuitem_id)
-            order_item = OrderItem.objects.create(order=order, menuitem=menuitem, quantity=item.quantity)
-            order_item.save()
-        
-        cart.delete()
-        return Response({'message': f'Your order has been placed! Your order number is {order.id}'},status=201)
+        data = request.data.get('menu_items', [])
+
+        if not data:
+            return Response({'message': 'Bad Request - No menu items provided'}, status=400)
+
+        total = Decimal('0.00')
+        order_items = []
+
+        with transaction.atomic():
+            order = Order.objects.create(user=request.user, status=False, total=total, date=date.today())
+
+            for item_data in data:
+                menuitem_id = item_data.get('menuitem_id')
+                quantity = item_data.get('quantity')
+
+                if not menuitem_id or not quantity:
+                    return Response({'message': 'Bad Request - Invalid menu item data'}, status=400)
+
+                menuitem = get_object_or_404(MenuItem, id=menuitem_id)
+                unit_price = menuitem.price
+                price = unit_price * quantity
+
+                order_item = OrderItem.objects.create(
+                    order=order,
+                    menuitem=menuitem,
+                    quantity=quantity,
+                    unit_price=unit_price,
+                    price=price
+                )
+                order_items.append(order_item)
+
+                total += price
+
+            order.total = total
+            order.save()
+
+        return Response({'message': f'Your order has been placed! Your order number is {order.id}'}, status=201)
+
     return Response({'message': 'Invalid request method'}, status=400)
     
 
