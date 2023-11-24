@@ -101,7 +101,12 @@ API ROUTES
     }
 
 11.	Customers can register
-    
+    POST http://localhost:8000/api/register/
+    {
+        "username":"newuser1",
+        "password":"Newuser1pass123",
+        "email":"newuser1@newuser1.com"
+    }
 
 12.	Customers can log in using their username and password and get access tokens
 

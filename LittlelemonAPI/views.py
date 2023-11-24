@@ -12,8 +12,10 @@ from .permissions import IsManager
 from django.shortcuts import get_object_or_404
 import math
 from datetime import date
+from rest_framework.permissions import AllowAny
 
 @api_view(['POST'])
+@permission_classes([AllowAny]) 
 def customer_register_view(request):
     if request.method=='POST':
         serializer=CustomerRegisterSerializer(data=request.data)
