@@ -96,8 +96,12 @@ API ROUTES
 
 10.	The delivery crew can update an order as delivered
     PATCH http://localhost:8000/api/orders/1
+    {
+        "status": true
+    }
 
 11.	Customers can register
+    
 
 12.	Customers can log in using their username and password and get access tokens
 

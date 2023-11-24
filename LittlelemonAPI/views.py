@@ -6,12 +6,25 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Category,MenuItem, Cart, Order, OrderItem
-from .serializers import MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer,OrderItemSerializer,OrderPutSerializer
+from .serializers import CustomerRegisterSerializer, MenuItemSerializer, CategorySerializer,AllManagerSerializer,CartSerializer,CartAddSerializer,CartRemoveSerializer,OrderSerializer,OrderItemSerializer,OrderPutSerializer
 from django.http import JsonResponse, HttpResponseBadRequest
 from .permissions import IsManager
 from django.shortcuts import get_object_or_404
 import math
 from datetime import date
+
+@api_view(['POST'])
+def customer_register_view(request):
+    if request.method=='POST':
+        serializer=CustomerRegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Registration successful'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({'message': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['POST'])
 @permission_classes([])
