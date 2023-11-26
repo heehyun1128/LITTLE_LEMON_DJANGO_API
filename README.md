@@ -78,6 +78,7 @@
     DELETE http://localhost:8000/api/menu-items/3
 
 7.	Managers can assign users to the delivery crew
+
     POST http://localhost:8000/api/groups/delivery-crew/users
     ```
         {
@@ -86,7 +87,9 @@
     ```
 
 8.	Managers can assign orders to the delivery crew
+
     PUT http://localhost:8000/api/orders/2
+
     ```
         {
             "delivery_crew": 4
@@ -102,22 +105,24 @@
 10.	The delivery crew can update an order as delivered
 
     PATCH http://localhost:8000/api/orders/1
-        ```
+
+    ```
         {
             "status": true
         }
-        ```
+    ```
 
 11.	Customers can register
 
     POST http://localhost:8000/api/register/
-        ```
+
+    ```
         {
             "username":"newuser1",
             "password":"Newuser1pass123",
             "email":"newuser1@newuser1.com"
         }
-        ```
+    ```
 
 12.	Customers can log in using their username and password and get access tokens
 
@@ -174,21 +179,21 @@
 
     POST http://localhost:8000/api/orders
 
-```
-    {
-  
-        "delivery_crew": 4, 
-        "status": true,
-        "total": 20.00,
-        "date": "2023-11-23",
-        "menu_items": [
-            {
-            "menuitem_id": 1, 
-            "quantity": 2
-            }
-        ]    
-    }
-```
+    ```
+        {
+    
+            "delivery_crew": 4, 
+            "status": true,
+            "total": 20.00,
+            "date": "2023-11-23",
+            "menu_items": [
+                {
+                "menuitem_id": 1, 
+                "quantity": 2
+                }
+            ]    
+        }
+    ```
 
 21.	Customers can browse their own orders
 
