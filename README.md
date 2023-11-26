@@ -1,4 +1,4 @@
-## User Story & API ROUTES
+## User Story & API Routes
 
 1.	The admin can assign users to the manager group
 
